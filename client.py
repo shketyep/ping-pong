@@ -6,6 +6,7 @@ from threading import Thread
 # ---ПУГАМЕ НАЛАШТУВАННЯ ---
 WIDTH, HEIGHT = 800, 600
 init()
+mixer.init()
 screen = display.set_mode((WIDTH, HEIGHT))
 clock = time.Clock()
 display.set_caption("Пінг-Понг")
@@ -14,7 +15,7 @@ def connect_to_server():
     while True:
         try:
             client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client.connect(('0.tcp.eu.ngrok.io', 16287)) # ---- Підключення до сервера
+            client.connect(('localhost', 8080)) # ---- Підключення до сервера
             buffer = ""
             game_state = {}
             my_id = int(client.recv(24).decode())
@@ -43,8 +44,10 @@ font_main = font.Font(None, 36)
 # --- ЗОБРАЖЕННЯ ----
 background = image.load("meow.jpg").convert()
 background = transform.scale(background, (800,600))
+ball_image = image.load("egg.png").convert_alpha()
+ball_image= transform.scale(ball_image, (25,25))
 # --- ЗВУКИ ---
-
+kokoko = mixer.Sound("chicken.mp3")
 # --- ГРА ---
 game_over = False
 winner = None
@@ -87,22 +90,21 @@ while True:
 
         display.update()
         continue  # Блокує гру після перемоги
-
     if game_state:
         screen.blit(background, (0,0))
         draw.rect(screen, (0, 0, 0), (20, game_state['paddles']['0'], 20, 100))
         draw.rect(screen, (255, 0, 255), (WIDTH - 40, game_state['paddles']['1'], 20, 100))
-        draw.circle(screen, (255, 255, 255), (game_state['ball']['x'], game_state['ball']['y']), 10)
+        screen.blit(ball_image, (game_state['ball']['x']-12.5, game_state['ball']['y']-12.5))
         score_text = font_main.render(f"{game_state['scores'][0]} : {game_state['scores'][1]}", True, (255, 255, 255))
         screen.blit(score_text, (WIDTH // 2 -25, 20))
 
         if game_state['sound_event']:
             if game_state['sound_event'] == 'wall_hit':
                 # звук відбиття м'ячика від стін
-                pass
+                kokoko.play()
             if game_state['sound_event'] == 'platform_hit':
                 # звук відбиття м'ячика від платформи
-                pass
+                kokoko.play()
 
     else:
         wating_text = font_main.render(f"Очікування гравців...", True, (255, 255, 255))
